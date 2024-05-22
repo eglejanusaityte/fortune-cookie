@@ -8,7 +8,6 @@ import com.fortune.cookie.business.repository.model.FortuneDAO;
 import com.fortune.cookie.business.repository.model.NeededWordDAO;
 import com.fortune.cookie.business.service.FortuneService;
 import com.fortune.cookie.model.Fortune;
-import com.fortune.cookie.model.NeededWord;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -44,6 +44,24 @@ public class FortuneServiceImpl implements FortuneService {
     public Fortune getFortuneById(Long id) {
         Optional<FortuneDAO> optionalFortuneDAO = fortuneRepository.findById(id);
         return optionalFortuneDAO.map(fortuneMapper::fortuneDAOToFortune).orElse(null);
+    }
+
+    @Override
+    public Fortune getRandomFortune() {
+        Random random = new Random();
+        List<FortuneDAO> allFortunes = fortuneRepository.findAll();
+        if (allFortunes.isEmpty()) {
+            throw new IllegalStateException("No fortunes available");
+        }
+        return fortuneMapper.fortuneDAOToFortune(allFortunes.get(random.nextInt(allFortunes.size())));
+    }
+
+    @Override
+    public Fortune getFortune() {
+        List<FortuneDAO> allFortunes = fortuneRepository.findAll();
+        Random random = new Random();
+        FortuneDAO fortuneDAO = allFortunes.get(random.nextInt(allFortunes.size()));
+        return fortuneMapper.fortuneDAOToFortune(fortuneDAO);
     }
 
     @Override
@@ -84,9 +102,51 @@ public class FortuneServiceImpl implements FortuneService {
         return fortuneMapper.fortuneDAOToFortune(fortuneDAO);
     }
 
+    @Override
+    public Fortune updateFortune(Long fortuneId, String sentence, Set<String> descriptors) {
+        FortuneDAO fortuneDAO = fortuneRepository.findById(fortuneId)
+                .orElseThrow(() -> new IllegalArgumentException("Fortune not found with ID: " + fortuneId));
+        if(sentence != null){
+            fortuneDAO.setSentence(sentence);
+        } else {
+            sentence = fortuneDAO.getSentence();
+        }
+        Set<NeededWordDAO> existingNeededWords = fortuneDAO.getNeededWordDAOS();
+        for (NeededWordDAO neededWordDAO : existingNeededWords) {
+            neededWordRepository.delete(neededWordDAO);
+        }
+        fortuneDAO.getNeededWordDAOS().clear();
+
+        Set<NeededWordDAO> updatedNeededWordsDAO = new HashSet<>();
+
+        Pattern pattern = Pattern.compile("#(\\w+)");
+        Matcher matcher = pattern.matcher(sentence);
+
+        while (matcher.find()) {
+            String placeholder = matcher.group(1);
+
+            NeededWordDAO neededWordDAO = new NeededWordDAO();
+            neededWordDAO.setWordType(getWordTypeFromPlaceholder(placeholder));
+
+            String descriptor = descriptors.isEmpty() ? "default" : descriptors.iterator().next();
+            neededWordDAO.setDescriptor(descriptor);
+            descriptors.remove(descriptor);
+
+            neededWordRepository.save(neededWordDAO);
+            updatedNeededWordsDAO.add(neededWordDAO);
+        }
+        if (!descriptors.isEmpty()) {
+            throw new IllegalArgumentException("Too many descriptors provided.");
+        }
+        fortuneDAO.setNeededWordDAOS(updatedNeededWordsDAO);
+        fortuneDAO = fortuneRepository.save(fortuneDAO);
+        return fortuneMapper.fortuneDAOToFortune(fortuneDAO);
+    }
+
     private WordType getWordTypeFromPlaceholder(String placeholder) {
         return switch (placeholder.toUpperCase()) {
             case "NOUN" -> WordType.NOUN;
+            case "NOUN_PLURAL" -> WordType.NOUN_PLURAL;
             case "VERB" -> WordType.VERB;
             case "ADJECTIVE" -> WordType.ADJECTIVE;
             default -> throw new IllegalArgumentException("Invalid word type: " + placeholder);

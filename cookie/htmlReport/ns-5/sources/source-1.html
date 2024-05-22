@@ -1,0 +1,287 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > FortuneCookieServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.fortune.cookie.business.service.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: FortuneCookieServiceImpl (com.fortune.cookie.business.service.impl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FortuneCookieServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    100%
+  </span>
+  <span class="absValue">
+    (1/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    30%
+  </span>
+  <span class="absValue">
+    (3/10)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    10%
+  </span>
+  <span class="absValue">
+    (8/80)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.fortune.cookie.business.service.impl;
+&nbsp;
+&nbsp;import com.fortune.cookie.business.enums.Role;
+&nbsp;import com.fortune.cookie.business.enums.WordType;
+&nbsp;import com.fortune.cookie.business.mappers.FortuneCookieMapper;
+&nbsp;import com.fortune.cookie.business.repository.FortuneCookieRepository;
+&nbsp;import com.fortune.cookie.business.repository.FortuneRepository;
+&nbsp;import com.fortune.cookie.business.repository.UserRepository;
+&nbsp;import com.fortune.cookie.business.repository.WordRepository;
+&nbsp;import com.fortune.cookie.business.repository.model.FortuneCookieDAO;
+&nbsp;import com.fortune.cookie.business.repository.model.FortuneDAO;
+&nbsp;import com.fortune.cookie.business.repository.model.NeededWordDAO;
+&nbsp;import com.fortune.cookie.business.repository.model.UserDAO;
+&nbsp;import com.fortune.cookie.business.repository.model.WordDAO;
+&nbsp;import com.fortune.cookie.business.service.FortuneCookieService;
+&nbsp;import com.fortune.cookie.model.FortuneCookie;
+&nbsp;import com.fortune.cookie.model.Word;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.cache.annotation.Cacheable;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import java.time.LocalDate;
+&nbsp;import java.util.HashSet;
+&nbsp;import java.util.List;
+&nbsp;import java.util.NoSuchElementException;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.Random;
+&nbsp;import java.util.Set;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;import java.util.Iterator;
+&nbsp;
+&nbsp;import lombok.extern.log4j.Log4j2;
+&nbsp;
+&nbsp;@Service
+&nbsp;@Transactional
+<b class="fc">&nbsp;@Log4j2</b>
+<b class="fc">&nbsp;public class FortuneCookieServiceImpl implements FortuneCookieService {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private FortuneCookieRepository fortuneCookieRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private FortuneRepository fortuneRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private WordRepository wordRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserRepository userRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private FortuneCookieMapper fortuneCookieMapper;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    @Transactional
+&nbsp;    @Cacheable(value = &quot;fortuneCookies&quot;, key = &quot;#email + &#39;_&#39; + T(java.time.LocalDate).now().toString()&quot;)
+&nbsp;    public FortuneCookie createFortuneCookie(String email) {
+<b class="nc">&nbsp;        Optional&lt;UserDAO&gt; user = Optional.ofNullable(userRepository.findByEmail(email));</b>
+<b class="nc">&nbsp;        UserDAO userDAO = user.orElseThrow();</b>
+&nbsp;
+<b class="nc">&nbsp;        LocalDate today = LocalDate.now();</b>
+<b class="nc">&nbsp;        Optional&lt;FortuneCookieDAO&gt; existingFortuneCookieOptional = fortuneCookieRepository.findByUserDAOAndDate(userDAO, today);</b>
+&nbsp;
+<b class="nc">&nbsp;        if (existingFortuneCookieOptional.isPresent()) {</b>
+<b class="nc">&nbsp;            FortuneCookieDAO existingFortuneCookieDAO = existingFortuneCookieOptional.get();</b>
+<b class="nc">&nbsp;            log.info(&quot;Getting existing fortune cookie: {}&quot;, existingFortuneCookieDAO);</b>
+<b class="nc">&nbsp;            return fortuneCookieMapper.fortuneCookieDAOToFortuneCookie(existingFortuneCookieDAO);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        List&lt;FortuneDAO&gt; allFortunes = fortuneRepository.findAll();</b>
+<b class="nc">&nbsp;        FortuneDAO randomFortune = getRandomFortune(allFortunes);</b>
+&nbsp;
+<b class="nc">&nbsp;        List&lt;WordDAO&gt; allWords = wordRepository.findAll();</b>
+<b class="nc">&nbsp;        Set&lt;WordDAO&gt; randomWords = getRandomSubset(allWords, randomFortune.getNeededWordDAOS());</b>
+&nbsp;
+<b class="nc">&nbsp;        FortuneCookieDAO fortuneCookieDAO = new FortuneCookieDAO();</b>
+<b class="nc">&nbsp;        fortuneCookieDAO.setFortuneDAO(randomFortune);</b>
+<b class="nc">&nbsp;        fortuneCookieDAO.setWords(randomWords);</b>
+<b class="nc">&nbsp;        fortuneCookieDAO.setUserDAO(userDAO);</b>
+&nbsp;
+<b class="nc">&nbsp;        FortuneCookieDAO savedFortuneCookieDAO = fortuneCookieRepository.save(fortuneCookieDAO);</b>
+<b class="nc">&nbsp;        log.info(&quot;Creating new fortune cookie: {}&quot;, savedFortuneCookieDAO);</b>
+<b class="nc">&nbsp;        return fortuneCookieMapper.fortuneCookieDAOToFortuneCookie(savedFortuneCookieDAO);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public String createFortuneCookieShort(String email) {
+<b class="nc">&nbsp;        FortuneCookie fortuneCookie = createFortuneCookie(email);</b>
+<b class="nc">&nbsp;        String sentence = fortuneCookie.getFortune().getSentence();</b>
+<b class="nc">&nbsp;        for (Word word : fortuneCookie.getWords()) {</b>
+<b class="nc">&nbsp;            String placeholder = &quot;#&quot; + word.getWordType();</b>
+<b class="nc">&nbsp;            sentence = sentence.replace(placeholder, word.getWord());</b>
+<b class="nc">&nbsp;        }</b>
+<b class="nc">&nbsp;        return sentence;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private &lt;T&gt; T getRandomFortune(List&lt;T&gt; list) {
+<b class="nc">&nbsp;        Random random = new Random();</b>
+<b class="nc">&nbsp;        return list.get(random.nextInt(list.size()));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    private Set&lt;WordDAO&gt; getRandomSubset(List&lt;WordDAO&gt; allWords, Set&lt;NeededWordDAO&gt; neededWords) {
+<b class="nc">&nbsp;        Random random = new Random();</b>
+<b class="nc">&nbsp;        Set&lt;WordDAO&gt; subset = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        for (NeededWordDAO neededWord : neededWords) {</b>
+<b class="nc">&nbsp;            List&lt;WordDAO&gt; matchingWords = allWords.stream()</b>
+<b class="nc">&nbsp;                    .filter(word -&gt; word.getWordType().equals(neededWord.getWordType()))</b>
+<b class="nc">&nbsp;                    .toList();</b>
+&nbsp;
+<b class="nc">&nbsp;            if (matchingWords.isEmpty()) {</b>
+<b class="nc">&nbsp;                throw new NoSuchElementException(&quot;No matching words found for word type: &quot; + neededWord.getWordType());</b>
+&nbsp;            } else {
+<b class="nc">&nbsp;                WordDAO randomWord = matchingWords.get(random.nextInt(matchingWords.size()));</b>
+<b class="nc">&nbsp;                subset.add(randomWord);</b>
+&nbsp;            }
+<b class="nc">&nbsp;        }</b>
+<b class="nc">&nbsp;        return subset;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public FortuneCookie createFortuneCookiePersonal(Long fortuneId, String email, List&lt;String&gt; words) {
+<b class="nc">&nbsp;        Optional&lt;UserDAO&gt; user = Optional.ofNullable(userRepository.findByEmail(email));</b>
+<b class="nc">&nbsp;        UserDAO userDAO = user.orElseThrow();</b>
+&nbsp;
+<b class="nc">&nbsp;        FortuneDAO fortuneDAO = fortuneRepository.findById(fortuneId)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new NoSuchElementException(&quot;Fortune not found&quot;));</b>
+&nbsp;
+<b class="nc">&nbsp;        if (words.size() != fortuneDAO.getNeededWordDAOS().size()) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;Number of provided words doesn&#39;t match number of needed words&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;WordDAO&gt; savedWordDAOs = new HashSet&lt;&gt;();</b>
+<b class="nc">&nbsp;        Iterator&lt;NeededWordDAO&gt; neededWordIterator = fortuneDAO.getNeededWordDAOS().iterator();</b>
+<b class="nc">&nbsp;        for (String word : words) {</b>
+<b class="nc">&nbsp;            if (!neededWordIterator.hasNext()) {</b>
+<b class="nc">&nbsp;                throw new IllegalArgumentException(&quot;Not enough needed words specified&quot;);</b>
+&nbsp;            }
+<b class="nc">&nbsp;            NeededWordDAO neededWord = neededWordIterator.next();</b>
+<b class="nc">&nbsp;            WordType wordType = neededWord.getWordType();</b>
+&nbsp;
+<b class="nc">&nbsp;            WordDAO wordDAO = new WordDAO(word, wordType, true);</b>
+<b class="nc">&nbsp;            savedWordDAOs.add(wordRepository.save(wordDAO));</b>
+<b class="nc">&nbsp;        }</b>
+&nbsp;
+<b class="nc">&nbsp;        FortuneCookieDAO fortuneCookieDAO = new FortuneCookieDAO();</b>
+<b class="nc">&nbsp;        fortuneCookieDAO.setUserDAO(userDAO);</b>
+<b class="nc">&nbsp;        fortuneCookieDAO.setFortuneDAO(fortuneDAO);</b>
+<b class="nc">&nbsp;        fortuneCookieDAO.setWords(savedWordDAOs);</b>
+&nbsp;
+<b class="nc">&nbsp;        return fortuneCookieMapper.fortuneCookieDAOToFortuneCookie(fortuneCookieRepository.save(fortuneCookieDAO));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;FortuneCookie&gt; getFortuneCookiesByUserId(String email) {
+<b class="fc">&nbsp;        Optional&lt;UserDAO&gt; user = Optional.ofNullable(userRepository.findByEmail(email));</b>
+<b class="fc">&nbsp;        UserDAO userDAO = user.orElseThrow();</b>
+<b class="fc">&nbsp;        List&lt;FortuneCookieDAO&gt; fortuneCookieDAOs = fortuneCookieRepository.findByUserDAO(userDAO);</b>
+<b class="fc">&nbsp;        return fortuneCookieDAOs.stream()</b>
+<b class="fc">&nbsp;                .map(fortuneCookieMapper::fortuneCookieDAOToFortuneCookie)</b>
+<b class="fc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public List&lt;FortuneCookie&gt; getFortuneCookies() {
+<b class="nc">&nbsp;        List&lt;FortuneCookieDAO&gt; fortuneCookieDAOs = fortuneCookieRepository.findAll();</b>
+<b class="nc">&nbsp;        return fortuneCookieDAOs.stream()</b>
+<b class="nc">&nbsp;                .map(fortuneCookieMapper::fortuneCookieDAOToFortuneCookie)</b>
+<b class="nc">&nbsp;                .collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    public void deleteFortuneCookie(Long fortuneCookieId, String email) {
+<b class="nc">&nbsp;        FortuneCookieDAO fortuneCookieDAO = fortuneCookieRepository.findById(fortuneCookieId)</b>
+<b class="nc">&nbsp;                .orElseThrow(() -&gt; new NoSuchElementException(&quot;Fortune cookie not found&quot;));</b>
+&nbsp;
+<b class="nc">&nbsp;        Optional&lt;UserDAO&gt; user = Optional.ofNullable(userRepository.findByEmail(email));</b>
+<b class="nc">&nbsp;        UserDAO userDAO = user.orElseThrow();</b>
+&nbsp;
+<b class="nc">&nbsp;        if (!userDAO.getRole().equals(Role.USER) &amp;&amp; !fortuneCookieDAO.getUserDAO().getId().equals(userDAO.getId())) {</b>
+<b class="nc">&nbsp;            throw new IllegalArgumentException(&quot;User is not authorized to delete this fortune cookie&quot;);</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        fortuneCookieRepository.delete(fortuneCookieDAO);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-05-06 21:19</div>
+</div>
+</body>
+</html>

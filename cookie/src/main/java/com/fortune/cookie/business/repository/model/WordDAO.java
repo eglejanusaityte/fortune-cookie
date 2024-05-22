@@ -26,11 +26,19 @@ public class WordDAO {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "word", unique = true)
+    @Column(name = "word")
     private String word;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "word_type")
     private WordType wordType;
 
+    @Column(name = "personal", columnDefinition = "BOOLEAN DEFAULT false")
+    private Boolean personal;
+
+    public WordDAO(String word, WordType wordType, boolean personal) {
+        this.word = word;
+        this.wordType = wordType;
+        this.personal = personal;
+    }
 }

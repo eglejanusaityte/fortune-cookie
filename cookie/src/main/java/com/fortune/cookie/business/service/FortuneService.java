@@ -8,10 +8,16 @@ import java.util.Set;
 public interface FortuneService {
 
     Fortune getFortuneById(Long id);
+    Fortune getRandomFortune();
+
+    Fortune getFortune();
 
     List<Fortune> getAllFortunes();
 
     void deleteFortune(Long id);
 
     Fortune createFortune(String sentence, Set<String> descriptors);
+
+    Fortune updateFortune(Long fortuneId, String sentence, Set<String> descriptors);
+
 }

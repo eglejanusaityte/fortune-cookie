@@ -1,0 +1,103 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > FortuneCookieMapper</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.fortune.cookie.business.mappers</a>
+</div>
+
+<h1>Coverage Summary for Class: FortuneCookieMapper (com.fortune.cookie.business.mappers)</h1>
+
+<table class="coverageStats">
+
+<tr>
+  <th class="name">Class</th>
+</tr>
+  <tr>
+    <td class="name">FortuneCookieMapper$MockitoMock$simyVeqs</td>
+  </tr>
+  <tr>
+    <td class="name">FortuneCookieMapper$MockitoMock$simyVeqs$auxiliary$kao3aXTH</td>
+  </tr>
+  <tr>
+    <td class="name">FortuneCookieMapper$MockitoMock$simyVeqs$auxiliary$XaBicdQb</td>
+  </tr>
+<tr>
+  <td class="name"><strong>Total</strong></td>
+</tr>
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.fortune.cookie.business.mappers;
+&nbsp;
+&nbsp;import com.fortune.cookie.business.repository.model.FortuneCookieDAO;
+&nbsp;import com.fortune.cookie.model.FortuneCookie;
+&nbsp;import org.mapstruct.Mapper;
+&nbsp;import org.mapstruct.Mapping;
+&nbsp;import org.mapstruct.Mappings;
+&nbsp;
+&nbsp;@Mapper(componentModel = &quot;spring&quot;, uses = {UserMapper.class, FortuneMapper.class})
+&nbsp;public interface FortuneCookieMapper {
+&nbsp;    @Mappings({
+&nbsp;            @Mapping(source = &quot;id&quot;, target = &quot;id&quot;),
+&nbsp;            @Mapping(source = &quot;date&quot;, target = &quot;date&quot;),
+&nbsp;            @Mapping(source = &quot;user&quot;, target = &quot;userDAO&quot;),
+&nbsp;            @Mapping(source = &quot;fortune&quot;, target = &quot;fortuneDAO&quot;),
+&nbsp;    })
+&nbsp;    FortuneCookieDAO fortuneCookieToFortuneCookieDAO(FortuneCookie fortuneCookie);
+&nbsp;
+&nbsp;    @Mappings({
+&nbsp;            @Mapping(source = &quot;id&quot;, target = &quot;id&quot;),
+&nbsp;            @Mapping(source = &quot;date&quot;, target = &quot;date&quot;),
+&nbsp;            @Mapping(source = &quot;userDAO&quot;, target = &quot;user&quot;),
+&nbsp;            @Mapping(source = &quot;fortuneDAO&quot;, target = &quot;fortune&quot;),
+&nbsp;    })
+&nbsp;    FortuneCookie fortuneCookieDAOToFortuneCookie(FortuneCookieDAO fortuneCookieDAO);
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-05-06 21:19</div>
+</div>
+</body>
+</html>

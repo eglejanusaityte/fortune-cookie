@@ -1,0 +1,170 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > WordServiceImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.fortune.cookie.business.service.impl</a>
+</div>
+
+<h1>Coverage Summary for Class: WordServiceImpl (com.fortune.cookie.business.service.impl)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">WordServiceImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/6)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/18)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.fortune.cookie.business.service.impl;
+&nbsp;
+&nbsp;import com.fortune.cookie.business.mappers.WordMapper;
+&nbsp;import com.fortune.cookie.business.repository.WordRepository;
+&nbsp;import com.fortune.cookie.business.repository.model.WordDAO;
+&nbsp;import com.fortune.cookie.business.service.WordService;
+&nbsp;import com.fortune.cookie.model.Word;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Service;
+&nbsp;import org.springframework.transaction.annotation.Transactional;
+&nbsp;
+&nbsp;import java.util.List;
+&nbsp;import java.util.Optional;
+&nbsp;import java.util.stream.Collectors;
+&nbsp;
+&nbsp;@Service
+&nbsp;@Transactional
+<b class="nc">&nbsp;public class WordServiceImpl implements WordService {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    WordRepository wordRepository;
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    WordMapper wordMapper;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Word getWordById(Long id) {
+<b class="nc">&nbsp;        Optional&lt;WordDAO&gt; optionalWordDAO = wordRepository.findById(id);</b>
+<b class="nc">&nbsp;        return optionalWordDAO.map(wordMapper::wordDAOToWord).orElse(null);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public List&lt;Word&gt; getAllWords() {
+<b class="nc">&nbsp;        List&lt;WordDAO&gt; wordDAOList = wordRepository.findAll();</b>
+<b class="nc">&nbsp;        return wordDAOList.stream().map(wordMapper::wordDAOToWord).collect(Collectors.toList());</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Word createWord(Word word) {
+<b class="nc">&nbsp;        WordDAO wordDAO = wordMapper.wordToWordDAO(word);</b>
+<b class="nc">&nbsp;        return wordMapper.wordDAOToWord(wordRepository.save(wordDAO));</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public void deleteWord(Long id) {
+<b class="nc">&nbsp;        wordRepository.deleteById(id);</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public Word editWord(Long id, Word word) {
+<b class="nc">&nbsp;        Optional&lt;WordDAO&gt; optionalExistingWordDAO = wordRepository.findById(id);</b>
+<b class="nc">&nbsp;        if (optionalExistingWordDAO.isPresent()) {</b>
+<b class="nc">&nbsp;            WordDAO existingWordDAO = optionalExistingWordDAO.get();</b>
+<b class="nc">&nbsp;            WordDAO updatedWordDAO = wordMapper.wordToWordDAO(word);</b>
+<b class="nc">&nbsp;            if (updatedWordDAO.getWord() != null) {</b>
+<b class="nc">&nbsp;                existingWordDAO.setWord(updatedWordDAO.getWord());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            if (updatedWordDAO.getWordType() != null) {</b>
+<b class="nc">&nbsp;                existingWordDAO.setWordType(updatedWordDAO.getWordType());</b>
+&nbsp;            }
+<b class="nc">&nbsp;            return wordMapper.wordDAOToWord(wordRepository.save(existingWordDAO));</b>
+&nbsp;        }
+<b class="nc">&nbsp;        return null;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-05-06 21:19</div>
+</div>
+</body>
+</html>

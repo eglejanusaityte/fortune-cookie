@@ -14,6 +14,7 @@ import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -31,6 +32,7 @@ public class FortuneCookieDAO {
     @Column(name = "id")
     private Long id;
 
+    @CreationTimestamp
     @Column(name = "date")
     private LocalDate date;
 
@@ -49,8 +51,5 @@ public class FortuneCookieDAO {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private UserDAO userDAO;
-
-    @OneToMany(mappedBy = "fortuneCookieDAO")
-    private List<CommentDAO> comments;
 
 }

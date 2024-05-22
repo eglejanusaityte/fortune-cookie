@@ -1,0 +1,219 @@
+
+
+
+<!DOCTYPE html>
+<html id="htmlId">
+<head>
+  <meta http-equiv="Content-Type" content="text/html;charset=windows-1252"> 
+  <title>Coverage Report > FortuneCookieMapperImpl</title>
+  <style type="text/css">
+    @import "../../css/coverage.css";
+    @import "../../css/idea.min.css";
+  </style>
+  <script type="text/javascript" src="../../js/highlight.min.js"></script>
+  <script type="text/javascript" src="../../js/highlightjs-line-numbers.min.js"></script>
+</head>
+
+<body>
+<div class="content">
+<div class="breadCrumbs">
+Current scope:     <a href="../../index.html">all classes</a>
+    <span class="separator">|</span>
+    <a href="../index.html">com.fortune.cookie.business.mappers</a>
+</div>
+
+<h1>Coverage Summary for Class: FortuneCookieMapperImpl (com.fortune.cookie.business.mappers)</h1>
+
+<table class="coverageStats">
+<tr>
+  <th class="name">Class</th>
+<th class="coverageStat 
+">
+  Class, %
+</th>
+<th class="coverageStat 
+">
+  Method, %
+</th>
+<th class="coverageStat 
+">
+  Line, %
+</th>
+</tr>
+<tr>
+  <td class="name">FortuneCookieMapperImpl</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/1)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/7)
+  </span>
+</td>
+<td class="coverageStat">
+  <span class="percent">
+    0%
+  </span>
+  <span class="absValue">
+    (0/49)
+  </span>
+</td>
+</tr>
+
+</table>
+
+<br/>
+<br/>
+
+
+<pre>
+<code class="sourceCode" id="sourceCode">&nbsp;package com.fortune.cookie.business.mappers;
+&nbsp;
+&nbsp;import com.fortune.cookie.business.repository.model.FortuneCookieDAO;
+&nbsp;import com.fortune.cookie.business.repository.model.WordDAO;
+&nbsp;import com.fortune.cookie.model.FortuneCookie;
+&nbsp;import com.fortune.cookie.model.Word;
+&nbsp;import java.util.LinkedHashSet;
+&nbsp;import java.util.Set;
+&nbsp;import javax.annotation.processing.Generated;
+&nbsp;import org.springframework.beans.factory.annotation.Autowired;
+&nbsp;import org.springframework.stereotype.Component;
+&nbsp;
+&nbsp;@Generated(
+&nbsp;    value = &quot;org.mapstruct.ap.MappingProcessor&quot;,
+&nbsp;    date = &quot;2024-04-30T11:10:05+0300&quot;,
+&nbsp;    comments = &quot;version: 1.5.5.Final, compiler: IncrementalProcessingEnvironment from gradle-language-java-8.6.jar, environment: Java 21.0.1 (Oracle Corporation)&quot;
+&nbsp;)
+&nbsp;@Component
+<b class="nc">&nbsp;public class FortuneCookieMapperImpl implements FortuneCookieMapper {</b>
+&nbsp;
+&nbsp;    @Autowired
+&nbsp;    private UserMapper userMapper;
+&nbsp;    @Autowired
+&nbsp;    private FortuneMapper fortuneMapper;
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FortuneCookieDAO fortuneCookieToFortuneCookieDAO(FortuneCookie fortuneCookie) {
+<b class="nc">&nbsp;        if ( fortuneCookie == null ) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        FortuneCookieDAO fortuneCookieDAO = new FortuneCookieDAO();</b>
+&nbsp;
+<b class="nc">&nbsp;        fortuneCookieDAO.setId( fortuneCookie.getId() );</b>
+<b class="nc">&nbsp;        fortuneCookieDAO.setDate( fortuneCookie.getDate() );</b>
+<b class="nc">&nbsp;        fortuneCookieDAO.setUserDAO( userMapper.userToUserDAO( fortuneCookie.getUser() ) );</b>
+<b class="nc">&nbsp;        fortuneCookieDAO.setFortuneDAO( fortuneMapper.fortuneToFortuneDAO( fortuneCookie.getFortune() ) );</b>
+<b class="nc">&nbsp;        fortuneCookieDAO.setWords( wordSetToWordDAOSet( fortuneCookie.getWords() ) );</b>
+&nbsp;
+<b class="nc">&nbsp;        return fortuneCookieDAO;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    @Override
+&nbsp;    public FortuneCookie fortuneCookieDAOToFortuneCookie(FortuneCookieDAO fortuneCookieDAO) {
+<b class="nc">&nbsp;        if ( fortuneCookieDAO == null ) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        FortuneCookie fortuneCookie = new FortuneCookie();</b>
+&nbsp;
+<b class="nc">&nbsp;        fortuneCookie.setId( fortuneCookieDAO.getId() );</b>
+<b class="nc">&nbsp;        fortuneCookie.setDate( fortuneCookieDAO.getDate() );</b>
+<b class="nc">&nbsp;        fortuneCookie.setUser( userMapper.userDAOToUser( fortuneCookieDAO.getUserDAO() ) );</b>
+<b class="nc">&nbsp;        fortuneCookie.setFortune( fortuneMapper.fortuneDAOToFortune( fortuneCookieDAO.getFortuneDAO() ) );</b>
+<b class="nc">&nbsp;        fortuneCookie.setWords( wordDAOSetToWordSet( fortuneCookieDAO.getWords() ) );</b>
+&nbsp;
+<b class="nc">&nbsp;        return fortuneCookie;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected WordDAO wordToWordDAO(Word word) {
+<b class="nc">&nbsp;        if ( word == null ) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        WordDAO wordDAO = new WordDAO();</b>
+&nbsp;
+<b class="nc">&nbsp;        wordDAO.setId( word.getId() );</b>
+<b class="nc">&nbsp;        wordDAO.setWord( word.getWord() );</b>
+<b class="nc">&nbsp;        wordDAO.setWordType( word.getWordType() );</b>
+<b class="nc">&nbsp;        wordDAO.setPersonal( word.getPersonal() );</b>
+&nbsp;
+<b class="nc">&nbsp;        return wordDAO;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected Set&lt;WordDAO&gt; wordSetToWordDAOSet(Set&lt;Word&gt; set) {
+<b class="nc">&nbsp;        if ( set == null ) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;WordDAO&gt; set1 = new LinkedHashSet&lt;WordDAO&gt;( Math.max( (int) ( set.size() / .75f ) + 1, 16 ) );</b>
+<b class="nc">&nbsp;        for ( Word word : set ) {</b>
+<b class="nc">&nbsp;            set1.add( wordToWordDAO( word ) );</b>
+<b class="nc">&nbsp;        }</b>
+&nbsp;
+<b class="nc">&nbsp;        return set1;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected Word wordDAOToWord(WordDAO wordDAO) {
+<b class="nc">&nbsp;        if ( wordDAO == null ) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Word word = new Word();</b>
+&nbsp;
+<b class="nc">&nbsp;        word.setId( wordDAO.getId() );</b>
+<b class="nc">&nbsp;        word.setWord( wordDAO.getWord() );</b>
+<b class="nc">&nbsp;        word.setWordType( wordDAO.getWordType() );</b>
+<b class="nc">&nbsp;        word.setPersonal( wordDAO.getPersonal() );</b>
+&nbsp;
+<b class="nc">&nbsp;        return word;</b>
+&nbsp;    }
+&nbsp;
+&nbsp;    protected Set&lt;Word&gt; wordDAOSetToWordSet(Set&lt;WordDAO&gt; set) {
+<b class="nc">&nbsp;        if ( set == null ) {</b>
+<b class="nc">&nbsp;            return null;</b>
+&nbsp;        }
+&nbsp;
+<b class="nc">&nbsp;        Set&lt;Word&gt; set1 = new LinkedHashSet&lt;Word&gt;( Math.max( (int) ( set.size() / .75f ) + 1, 16 ) );</b>
+<b class="nc">&nbsp;        for ( WordDAO wordDAO : set ) {</b>
+<b class="nc">&nbsp;            set1.add( wordDAOToWord( wordDAO ) );</b>
+<b class="nc">&nbsp;        }</b>
+&nbsp;
+<b class="nc">&nbsp;        return set1;</b>
+&nbsp;    }
+&nbsp;}
+</code>
+</pre>
+</div>
+
+<script type="text/javascript">
+(function() {
+    var msie = false, msie9 = false;
+    /*@cc_on
+      msie = true;
+      @if (@_jscript_version >= 9)
+        msie9 = true;
+      @end
+    @*/
+
+    if (!msie || msie && msie9) {
+      hljs.highlightAll()
+      hljs.initLineNumbersOnLoad();
+    }
+})();
+</script>
+
+<div class="footer">
+    
+    <div style="float:right;">generated on 2024-05-06 21:19</div>
+</div>
+</body>
+</html>
