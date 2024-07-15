@@ -17,11 +17,10 @@ public class CookieApplication {
 	}
 	@Bean
 	public DataSource dataSource() {
-		// Configure and return your DataSource
 		DriverManagerDataSource dataSource = new DriverManagerDataSource();
-		dataSource.setUrl("jdbc:mariadb://localhost:3306/fortune_cookie");
+		dataSource.setUrl("jdbc:mysql://localhost:3306/fortune_cookie");
 		dataSource.setUsername("root");
-		dataSource.setPassword("");
+		dataSource.setPassword("root");
 		return dataSource;
 	}
 

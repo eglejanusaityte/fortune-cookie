@@ -4,6 +4,7 @@ import com.fortune.cookie.business.dto.ModifiedFortuneCookieDTO;
 import com.fortune.cookie.business.enums.Role;
 import com.fortune.cookie.business.enums.WordType;
 import com.fortune.cookie.business.mappers.FortuneCookieMapper;
+import com.fortune.cookie.business.mappers.UserMapper;
 import com.fortune.cookie.business.repository.FortuneCookieRepository;
 import com.fortune.cookie.business.repository.FortuneRepository;
 import com.fortune.cookie.business.repository.UserRepository;
@@ -15,6 +16,7 @@ import com.fortune.cookie.business.repository.model.UserDAO;
 import com.fortune.cookie.business.repository.model.WordDAO;
 import com.fortune.cookie.business.service.FortuneCookieService;
 import com.fortune.cookie.model.FortuneCookie;
+import com.fortune.cookie.model.User;
 import com.fortune.cookie.model.Word;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
@@ -37,7 +39,6 @@ import java.util.Iterator;
 import lombok.extern.log4j.Log4j2;
 
 @Service
-@Transactional
 @Log4j2
 public class FortuneCookieServiceImpl implements FortuneCookieService {
 
@@ -55,6 +56,9 @@ public class FortuneCookieServiceImpl implements FortuneCookieService {
 
     @Autowired
     private FortuneCookieMapper fortuneCookieMapper;
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     @Transactional
@@ -198,6 +202,30 @@ public class FortuneCookieServiceImpl implements FortuneCookieService {
         }
 
         fortuneCookieRepository.delete(fortuneCookieDAO);
+    }
+
+    @Override
+    public void likeFortuneCookie(Long fortuneCookieId, String email) {
+        FortuneCookieDAO fortuneCookieDAO = fortuneCookieRepository.findById(fortuneCookieId).orElse(null);
+        Set<UserDAO> liked = fortuneCookieDAO.getLikes();
+        UserDAO userDAO = userRepository.findByEmail(email);
+        if(!liked.contains(userDAO)){
+            liked.add(userDAO);
+            fortuneCookieDAO.setLikes(liked);
+            fortuneCookieRepository.save(fortuneCookieDAO);
+        }
+    }
+
+    @Override
+    public void removeLikeFortuneCookie(Long fortuneCookieId, String email) {
+        FortuneCookieDAO fortuneCookieDAO = fortuneCookieRepository.findById(fortuneCookieId).orElse(null);
+        Set<UserDAO> liked = fortuneCookieDAO.getLikes();
+        UserDAO userDAO = userRepository.findByEmail(email);
+        if(liked.contains(userDAO)){
+            liked.remove(userDAO);
+            fortuneCookieDAO.setLikes(liked);
+            fortuneCookieRepository.save(fortuneCookieDAO);
+        }
     }
 
 }

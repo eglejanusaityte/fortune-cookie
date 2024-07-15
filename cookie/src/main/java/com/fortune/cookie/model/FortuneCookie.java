@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.NonNull;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Set;
 
 @Data
@@ -33,5 +34,7 @@ public class FortuneCookie {
 
     @Schema(description = "User to which the cookie belongs to")
     private User user;
+
+    private List<User> likes;
 
 }

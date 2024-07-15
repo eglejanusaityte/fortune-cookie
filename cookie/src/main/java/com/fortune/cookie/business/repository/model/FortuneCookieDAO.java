@@ -9,7 +9,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,7 +16,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 
 @Data
@@ -51,5 +49,13 @@ public class FortuneCookieDAO {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private UserDAO userDAO;
+
+    @ManyToMany
+    @JoinTable(
+            name = "fortune_cookie_likes",
+            joinColumns = @JoinColumn(name = "fortune_cookie_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private Set<UserDAO> likes;
 
 }

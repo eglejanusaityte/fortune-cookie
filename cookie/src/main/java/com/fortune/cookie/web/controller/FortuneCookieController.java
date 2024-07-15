@@ -20,12 +20,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -201,4 +201,41 @@ public class FortuneCookieController {
         return ResponseEntity.noContent().build();
     }
 
+    //add like
+    @PutMapping("/fortune-cookies/{fortuneCookieId}/like")
+    @Operation(summary = "Like a fortune cookie", description = "Adds user to fortune cookie liked list")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HTMLResponseMessages.HTTP_200,
+                    content = @Content(examples = {@ExampleObject(value = "{\"sentence\": \"value\"}")},
+                            mediaType = MediaType.APPLICATION_JSON_VALUE)
+            ),
+            @ApiResponse(responseCode = "403", description = HTMLResponseMessages.HTTP_403, content = @Content),
+            @ApiResponse(responseCode = "500", description = HTMLResponseMessages.HTTP_500, content = @Content),
+    })
+    public ResponseEntity<Void> likeFortuneCookie(
+            @PathVariable Long fortuneCookieId, HttpServletRequest request) {
+        ResponseEntity<Map> response = security(request, USERNAME_URL);
+        String username = (String) Objects.requireNonNull(response.getBody()).get("username");
+        fortuneCookieService.likeFortuneCookie(fortuneCookieId, username);
+        return ResponseEntity.noContent().build();
+    }
+
+    // remove like
+    @PutMapping("/fortune-cookies/{fortuneCookieId}/remove")
+    @Operation(summary = "Remove like from a fortune cookie", description = "Removes user from fortune cookie liked list")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = HTMLResponseMessages.HTTP_200,
+                    content = @Content(examples = {@ExampleObject(value = "{\"sentence\": \"value\"}")},
+                            mediaType = MediaType.APPLICATION_JSON_VALUE)
+            ),
+            @ApiResponse(responseCode = "403", description = HTMLResponseMessages.HTTP_403, content = @Content),
+            @ApiResponse(responseCode = "500", description = HTMLResponseMessages.HTTP_500, content = @Content),
+    })
+    public ResponseEntity<Void> removeLikeFortuneCookie(
+            @PathVariable Long fortuneCookieId, HttpServletRequest request) {
+        ResponseEntity<Map> response = security(request, USERNAME_URL);
+        String username = (String) Objects.requireNonNull(response.getBody()).get("username");
+        fortuneCookieService.removeLikeFortuneCookie(fortuneCookieId, username);
+        return ResponseEntity.noContent().build();
+    }
 }
