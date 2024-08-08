@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashSet;
@@ -52,8 +54,8 @@ public class FortuneController {
             @ApiResponse(responseCode = "400", description = HTMLResponseMessages.HTTP_400, content = @Content),
             @ApiResponse(responseCode = "500", description = HTMLResponseMessages.HTTP_500, content = @Content),
     })
-    public ResponseEntity<List<Fortune>> getAllFortunes() {
-        List<Fortune> fortunes = fortuneService.getAllFortunes();
+    public ResponseEntity<Page<Fortune>> getAllFortunes(@RequestParam(value = "page", defaultValue = "0") Integer page) {
+        Page<Fortune> fortunes = fortuneService.getAllFortunes(page);
         return new ResponseEntity<>(fortunes, HttpStatus.OK);
     }
 
@@ -97,8 +99,6 @@ public class FortuneController {
         }
     }
 
-
-
     @DeleteMapping("/fortunes/{id}")
     @Operation(summary = "Delete fortune", description = "Delete a fortune by id",
             parameters = @Parameter(name = "Authorization", content = { @Content(mediaType = "application/json",
@@ -128,9 +128,9 @@ public class FortuneController {
     })
     public ResponseEntity<Fortune> createFortune(@RequestBody Map<String, Object> requestBody) {
         String sentence = (String) requestBody.get("sentence");
-        List<String> descriptors = (List<String>) requestBody.get("descriptors");
+        List<Map<String, String>> neededWords = (List<Map<String, String>>) requestBody.get("neededWords");
 
-        Fortune fortune = fortuneService.createFortune(sentence, descriptors != null ? new HashSet<>(descriptors) : new HashSet<>());
+        Fortune fortune = fortuneService.createFortune(sentence, neededWords);
         return new ResponseEntity<>(fortune, HttpStatus.CREATED);
     }
 
@@ -152,9 +152,9 @@ public class FortuneController {
     })
     public ResponseEntity<Fortune> updateFortune(@PathVariable Long id, @RequestBody Map<String, Object> requestBody) {
         String sentence = (String) requestBody.getOrDefault("sentence", null);
-        List<String> descriptors = (List<String>) requestBody.get("descriptors");
+        List<Map<String, String>> neededWords = (List<Map<String, String>>) requestBody.get("neededWords");
 
-        Fortune fortune = fortuneService.updateFortune(id, sentence, descriptors != null ? new HashSet<>(descriptors) : new HashSet<>());
+        Fortune fortune = fortuneService.updateFortune(id, sentence, neededWords);
         return new ResponseEntity<>(fortune, HttpStatus.CREATED);
     }
 }

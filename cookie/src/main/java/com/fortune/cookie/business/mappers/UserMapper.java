@@ -12,12 +12,14 @@ public interface UserMapper {
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "email", target = "email")
+    @Mapping(source = "username", target = "username")
     @Mapping(source = "password", target = "password")
     @Mapping(source = "role", target = "role")
     UserDAO userToUserDAO(User user);
 
     @Mapping(source = "id", target = "id")
     @Mapping(source = "email", target = "email")
+    @Mapping(source = "username", target = "username")
     @Mapping(source = "password", target = "password")
     @Mapping(source = "role", target = "role")
     User userDAOToUser(UserDAO userDAO);

@@ -21,9 +21,10 @@ import java.util.Optional;
 
 @Configuration
 @RequiredArgsConstructor
-public class ApplicationConfig {
+public class ApplicationConfiguration {
 
-    private final UserRepository repository;
+    @Autowired
+    private final UserRepository userRepository;
 
     @Autowired
     private UserMapper userMapper;
@@ -31,7 +32,7 @@ public class ApplicationConfig {
     @Bean
     public UserDetailsService userDetailsService(){
         return username -> {
-            Optional<UserDAO> userDAOOptional = Optional.ofNullable(repository.findByEmail(username));
+            Optional<UserDAO> userDAOOptional = Optional.ofNullable(userRepository.findByUsername(username));
             return userDAOOptional.map(userDAO -> userMapper.userDAOToUser(userDAO))
                     .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         };

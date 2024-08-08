@@ -17,6 +17,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -49,7 +51,6 @@ public class FortuneCookieController {
 
     private final String USERNAME_URL = "http://localhost:8081/api/v1/jwt/extract-username";
 
-    private final String IS_ADMIN_URL = "http://localhost:8081/api/v1/jwt/is-admin";
 
     private ResponseEntity<Map> security(HttpServletRequest request, String url){
         String authorizationHeader = request.getHeader("Authorization");
@@ -79,31 +80,14 @@ public class FortuneCookieController {
             @ApiResponse(responseCode = "403", description = HTMLResponseMessages.HTTP_403, content = @Content),
             @ApiResponse(responseCode = "500", description = HTMLResponseMessages.HTTP_500, content = @Content),
     })
-    public ResponseEntity<Map> createFortuneCookie(HttpServletRequest request) {
+    public ResponseEntity<ModifiedFortuneCookieDTO> createFortuneCookie(HttpServletRequest request) {
         ResponseEntity<Map> response = security(request, USERNAME_URL);
         String username = (String) Objects.requireNonNull(response.getBody()).get("username");
-        String fortuneCookie = fortuneCookieService.createFortuneCookieShort(username);
+        ModifiedFortuneCookieDTO fortuneCookie = fortuneCookieService.createFortuneCookieShort(username);
 
 //        kafkaTemplate.send("cookie-requests", "Fortune cookie created", username);
-        return ResponseEntity.ok(Map.of("sentence", fortuneCookie));
+        return ResponseEntity.ok(fortuneCookie);
     }
-
-//    @PostMapping("/fortune-cookie")
-//    @Operation(summary = "Create fortune cookie", description = "Creates a new fortune cookie for user")
-//    @ApiResponses(value = {
-//            @ApiResponse(responseCode = "200", description = HTMLResponseMessages.HTTP_200,
-//                    content = @Content(examples = {@ExampleObject(value = "{\"sentence\": \"value\"}")},
-//                            mediaType = MediaType.APPLICATION_JSON_VALUE)
-//            ),
-//            @ApiResponse(responseCode = "403", description = HTMLResponseMessages.HTTP_403, content = @Content),
-//            @ApiResponse(responseCode = "500", description = HTMLResponseMessages.HTTP_500, content = @Content),
-//    })
-//    public ResponseEntity<Map> createFortuneCookie(HttpServletRequest request) {
-//        ResponseEntity<Map> response = security(request, USERNAME_URL);
-//        String username = (String) Objects.requireNonNull(response.getBody()).get("username");
-//        String fortuneCookie = fortuneCookieService.createFortuneCookieShort(username);
-//        return ResponseEntity.ok(Map.of("sentence", fortuneCookie));
-//    }
 
     @PostMapping("/fortune-cookie-personal")
     @Operation(summary = "Create fortune cookie mad lib",
@@ -119,14 +103,14 @@ public class FortuneCookieController {
             @ApiResponse(responseCode = "403", description = HTMLResponseMessages.HTTP_403, content = @Content),
             @ApiResponse(responseCode = "500", description = HTMLResponseMessages.HTTP_500, content = @Content),
     })
-    public ResponseEntity<FortuneCookie> createFortuneCookiePersonal(@RequestBody Map<String, Object> requestBody,
+    public ResponseEntity<ModifiedFortuneCookieDTO> createFortuneCookiePersonal(@RequestBody Map<String, Object> requestBody,
                                                                      HttpServletRequest request) {
 
         Long fortuneId = Long.parseLong(requestBody.get("fortuneId").toString());
         List<String> words = (List<String>) requestBody.get("words");
         ResponseEntity<Map> response = security(request, USERNAME_URL);
         String username = (String) Objects.requireNonNull(response.getBody()).get("username");
-        FortuneCookie fortuneCookie = fortuneCookieService.createFortuneCookiePersonal(fortuneId, username, words);
+        ModifiedFortuneCookieDTO fortuneCookie = fortuneCookieService.createFortuneCookiePersonal(fortuneId, username, words);
         return ResponseEntity.ok(fortuneCookie);
     }
 
@@ -142,10 +126,11 @@ public class FortuneCookieController {
             @ApiResponse(responseCode = "500", description = HTMLResponseMessages.HTTP_500, content = @Content),
     })
     @GetMapping("/fortune-cookies-personal")
-    public ResponseEntity<List<ModifiedFortuneCookieDTO>> getFortuneCookiesByUser(HttpServletRequest request) {
+    public ResponseEntity<Page<ModifiedFortuneCookieDTO>> getFortuneCookiesByUser(@RequestParam(value = "page", defaultValue = "0") Integer page,
+                                                                                  HttpServletRequest request) {
         ResponseEntity<Map> response = security(request, USERNAME_URL);
         String username = (String) Objects.requireNonNull(response.getBody()).get("username");
-        List<ModifiedFortuneCookieDTO> fortuneCookies = fortuneCookieService.getFortuneCookiesByUserId(username);
+        Page<ModifiedFortuneCookieDTO> fortuneCookies = fortuneCookieService.getFortuneCookiesByUserId(page, username);
         if (fortuneCookies.isEmpty()) {
             return ResponseEntity.noContent().build();
         } else {
@@ -165,13 +150,9 @@ public class FortuneCookieController {
             @ApiResponse(responseCode = "403", description = HTMLResponseMessages.HTTP_403, content = @Content),
             @ApiResponse(responseCode = "500", description = HTMLResponseMessages.HTTP_500, content = @Content),
     })
-    public ResponseEntity<List<FortuneCookie>> getFortuneCookies(HttpServletRequest request) {
-//        ResponseEntity<Map> response = security(request, IS_ADMIN_URL);
-//        boolean check = (boolean) Objects.requireNonNull(response.getBody()).get("is_admin");
-//        if (!check) {
-//            throw new AccessDeniedException("User is not an admin");
-//        }
-        List<FortuneCookie> fortuneCookies = fortuneCookieService.getFortuneCookies();
+    public ResponseEntity<Page<ModifiedFortuneCookieDTO>> getFortuneCookies(
+            @RequestParam(value = "page", defaultValue = "0") Integer page, HttpServletRequest request) {
+        Page<ModifiedFortuneCookieDTO> fortuneCookies = fortuneCookieService.getFortuneCookies(page);
         if (fortuneCookies.isEmpty()) {
             return ResponseEntity.noContent().build();
         } else {

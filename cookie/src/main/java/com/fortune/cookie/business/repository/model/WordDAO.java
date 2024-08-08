@@ -26,8 +26,8 @@ public class WordDAO {
     @Column(name = "id")
     private Long id;
 
-    @Column(name = "word")
-    private String word;
+    @Column(name = "text")
+    private String text;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "word_type")
@@ -36,8 +36,8 @@ public class WordDAO {
     @Column(name = "personal", columnDefinition = "BOOLEAN DEFAULT false")
     private Boolean personal;
 
-    public WordDAO(String word, WordType wordType, boolean personal) {
-        this.word = word;
+    public WordDAO(String text, WordType wordType, boolean personal) {
+        this.text = text;
         this.wordType = wordType;
         this.personal = personal;
     }

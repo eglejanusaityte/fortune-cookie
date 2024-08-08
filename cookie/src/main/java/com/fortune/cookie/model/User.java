@@ -28,6 +28,11 @@ public class User implements UserDetails {
     @NonNull
     private String email;
 
+    @Schema(description = "The username of the user",
+            example = "example")
+    @NonNull
+    private String username;
+
     @Schema(description = "The password of the user",
             example = "password")
     @NonNull
@@ -46,7 +51,7 @@ public class User implements UserDetails {
     @Schema(hidden = true)
     @Override
     public String getUsername() {
-        return email;
+        return username;
     }
 
     @Schema(hidden = true)

@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -61,8 +63,8 @@ public class WordController {
             @ApiResponse(responseCode = "403", description = HTMLResponseMessages.HTTP_403, content = @Content),
             @ApiResponse(responseCode = "500", description = HTMLResponseMessages.HTTP_500, content = @Content),
     })
-    public ResponseEntity<List<Word>> getAllWords() {
-        List<Word> words = wordService.getAllWords();
+    public ResponseEntity<Page<Word>> getAllWords(@RequestParam(value = "page", defaultValue = "0") Integer page) {
+        Page<Word> words = wordService.getAllWords(page);
         return ResponseEntity.ok(words);
     }
 

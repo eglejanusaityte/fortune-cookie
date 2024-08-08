@@ -9,13 +9,13 @@ import org.mapstruct.Mapping;
 public interface WordMapper {
 
     @Mapping(source = "id", target = "id")
-    @Mapping(source = "word", target = "word")
+    @Mapping(source = "text", target = "text")
     @Mapping(source = "wordType", target = "wordType")
     @Mapping(source = "personal", target = "personal")
     WordDAO wordToWordDAO(Word word);
 
     @Mapping(source = "id", target = "id")
-    @Mapping(source = "word", target = "word")
+    @Mapping(source = "text", target = "text")
     @Mapping(source = "wordType", target = "wordType")
     @Mapping(source = "personal", target = "personal")
     Word wordDAOToWord(WordDAO wordDAO);

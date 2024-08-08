@@ -18,8 +18,14 @@ import com.fortune.cookie.business.service.FortuneCookieService;
 import com.fortune.cookie.model.FortuneCookie;
 import com.fortune.cookie.model.User;
 import com.fortune.cookie.model.Word;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,15 +34,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.Iterator;
-
-import lombok.extern.log4j.Log4j2;
 
 @Service
 @Log4j2
@@ -62,25 +67,38 @@ public class FortuneCookieServiceImpl implements FortuneCookieService {
 
     @Override
     @Transactional
-    @Cacheable(value = "fortuneCookies", key = "#email + '_' + T(java.time.LocalDate).now().toString()")
-    public FortuneCookie createFortuneCookie(String email) {
-        Optional<UserDAO> user = Optional.ofNullable(userRepository.findByEmail(email));
+    @Cacheable(value = "fortuneCookies", key = "#username + '_' + T(java.time.LocalDate).now().toString()")
+    public FortuneCookie createFortuneCookie(String username) {
+        Optional<UserDAO> user = Optional.ofNullable(userRepository.findByUsername(username));
         UserDAO userDAO = user.orElseThrow();
 
         LocalDate today = LocalDate.now();
-        Optional<FortuneCookieDAO> existingFortuneCookieOptional = fortuneCookieRepository.findByUserDAOAndDate(userDAO, today);
-
-        if (existingFortuneCookieOptional.isPresent()) {
-            FortuneCookieDAO existingFortuneCookieDAO = existingFortuneCookieOptional.get();
-            log.info("Getting existing fortune cookie: {}", existingFortuneCookieDAO);
-            return fortuneCookieMapper.fortuneCookieDAOToFortuneCookie(existingFortuneCookieDAO);
+        List<FortuneCookieDAO> existingFortuneCookies = fortuneCookieRepository.findByUserDAOAndDate(userDAO, today);
+        for(FortuneCookieDAO cookie : existingFortuneCookies){
+            boolean personal = false;
+            Optional<WordDAO> optional = cookie.getWords().stream().findFirst();
+            if (optional.isPresent()) {
+                WordDAO retrieved = optional.get();
+                if(retrieved.getPersonal()){
+                    personal = true;
+                }
+            }
+            if(!personal)
+            {
+                log.info("Getting existing fortune cookie: {}", cookie);
+                return fortuneCookieMapper.fortuneCookieDAOToFortuneCookie(cookie);
+            }
         }
 
         List<FortuneDAO> allFortunes = fortuneRepository.findAll();
         FortuneDAO randomFortune = getRandomFortune(allFortunes);
 
         List<WordDAO> allWords = wordRepository.findAll();
-        Set<WordDAO> randomWords = getRandomSubset(allWords, randomFortune.getNeededWordDAOS());
+        List<WordDAO> nonPersonalWords = allWords.stream()
+                .filter(word -> !word.getPersonal())
+                .toList();
+
+        Set<WordDAO> randomWords = getRandomSubset(nonPersonalWords, randomFortune.getNeededWordDAOS());
 
         FortuneCookieDAO fortuneCookieDAO = new FortuneCookieDAO();
         fortuneCookieDAO.setFortuneDAO(randomFortune);
@@ -93,14 +111,18 @@ public class FortuneCookieServiceImpl implements FortuneCookieService {
     }
 
     @Override
-    public String createFortuneCookieShort(String email) {
-        FortuneCookie fortuneCookie = createFortuneCookie(email);
+    public ModifiedFortuneCookieDTO createFortuneCookieShort(String username) {
+        FortuneCookie fortuneCookie = createFortuneCookie(username);
         String sentence = fortuneCookie.getFortune().getSentence();
+        boolean personal = false;
         for (Word word : fortuneCookie.getWords()) {
             String placeholder = "#" + word.getWordType();
-            sentence = sentence.replaceFirst(placeholder, word.getWord());
+            sentence = sentence.replaceFirst(Pattern.quote(placeholder), word.getText());
+            personal = word.getPersonal();
         }
-        return sentence;
+        Set<String> usernames = Collections.emptySet();
+        return new ModifiedFortuneCookieDTO(fortuneCookie.getId(), username, sentence, fortuneCookie.getDate(),
+                personal, usernames);
     }
 
     private <T> T getRandomFortune(List<T> list) {
@@ -126,8 +148,8 @@ public class FortuneCookieServiceImpl implements FortuneCookieService {
         return subset;
     }
 
-    public FortuneCookie createFortuneCookiePersonal(Long fortuneId, String email, List<String> words) {
-        Optional<UserDAO> user = Optional.ofNullable(userRepository.findByEmail(email));
+    public ModifiedFortuneCookieDTO createFortuneCookiePersonal(Long fortuneId, String username, List<String> words) {
+        Optional<UserDAO> user = Optional.ofNullable(userRepository.findByUsername(username));
         UserDAO userDAO = user.orElseThrow();
 
         FortuneDAO fortuneDAO = fortuneRepository.findById(fortuneId)
@@ -154,47 +176,86 @@ public class FortuneCookieServiceImpl implements FortuneCookieService {
         fortuneCookieDAO.setUserDAO(userDAO);
         fortuneCookieDAO.setFortuneDAO(fortuneDAO);
         fortuneCookieDAO.setWords(savedWordDAOs);
+        FortuneCookieDAO savedFortuneCookieDAO = fortuneCookieRepository.save(fortuneCookieDAO);
 
-        return fortuneCookieMapper.fortuneCookieDAOToFortuneCookie(fortuneCookieRepository.save(fortuneCookieDAO));
+        String sentence = savedFortuneCookieDAO.getFortuneDAO().getSentence();
+        for (WordDAO word : savedFortuneCookieDAO.getWords()) {
+            String placeholder = "#" + word.getWordType();
+            sentence = sentence.replaceFirst(Pattern.quote(placeholder), word.getText());
+        }
+
+        ModifiedFortuneCookieDTO dto = new ModifiedFortuneCookieDTO(savedFortuneCookieDAO.getId(), username,
+                sentence, savedFortuneCookieDAO.getDate(),true, new HashSet<>());
+        return dto;
     }
 
-    public List<ModifiedFortuneCookieDTO> getFortuneCookiesByUserId(String email) {
-        Optional<UserDAO> user = Optional.ofNullable(userRepository.findByEmail(email));
+    public Page<ModifiedFortuneCookieDTO> getFortuneCookiesByUserId(Integer page, String username) {
+        Optional<UserDAO> user = Optional.ofNullable(userRepository.findByUsername(username));
         UserDAO userDAO = user.orElseThrow();
-        List<FortuneCookieDAO> fortuneCookieDAOs = fortuneCookieRepository.findByUserDAO(userDAO);
-        fortuneCookieDAOs.sort(new Comparator<FortuneCookieDAO>() {
-            @Override
-            public int compare(FortuneCookieDAO cookie1, FortuneCookieDAO cookie2) {
-                return cookie2.getDate().compareTo(cookie1.getDate());
-            }
-        });
+        Pageable cookiePage = PageRequest.of(page, 3, Sort.by("date").descending());
+        Page<FortuneCookieDAO> fortuneCookieDAOs = fortuneCookieRepository.findByUserDAO(userDAO, cookiePage);
 
         List<ModifiedFortuneCookieDTO> modifiedFortuneCookies = new ArrayList<>();
         for (FortuneCookieDAO fortuneCookie : fortuneCookieDAOs) {
             String sentence = fortuneCookie.getFortuneDAO().getSentence();
-
+            boolean personal = false;
             for (WordDAO word : fortuneCookie.getWords()) {
                 String placeholder = "#" + word.getWordType();
-                sentence = sentence.replaceFirst(placeholder, word.getWord());
+                sentence = sentence.replaceFirst(Pattern.quote(placeholder), word.getText());
+                personal = word.getPersonal();
             }
-            ModifiedFortuneCookieDTO dto = new ModifiedFortuneCookieDTO(email, sentence, fortuneCookie.getDate());
+            Set<String> usernames = fortuneCookie.getLikes().stream()
+                    .map(UserDAO::getUsername)
+                    .collect(Collectors.toSet());
+            ModifiedFortuneCookieDTO dto = new ModifiedFortuneCookieDTO(fortuneCookie.getId(), username, sentence,
+                    fortuneCookie.getDate(), personal, usernames);
             modifiedFortuneCookies.add(dto);
         }
-        return modifiedFortuneCookies;
+        long totalElements = fortuneCookieDAOs.getTotalElements();
+        return new PageImpl<>(modifiedFortuneCookies, cookiePage, totalElements);
     }
 
-    public List<FortuneCookie> getFortuneCookies() {
-        List<FortuneCookieDAO> fortuneCookieDAOs = fortuneCookieRepository.findAll();
-        return fortuneCookieDAOs.stream()
-                .map(fortuneCookieMapper::fortuneCookieDAOToFortuneCookie)
+    public Page<ModifiedFortuneCookieDTO> getFortuneCookies(Integer page) {
+        LocalDate today = LocalDate.now();
+
+        Pageable cookiePage = PageRequest.of(page, 3);
+        Page<FortuneCookieDAO> fortuneCookieDAOs = fortuneCookieRepository.findByDate(today, cookiePage);
+
+        List<ModifiedFortuneCookieDTO> modifiedFortuneCookies = fortuneCookieDAOs.stream()
+                .map(fortuneCookie -> {
+                    String sentence = fortuneCookie.getFortuneDAO().getSentence();
+                    boolean personal = false;
+
+                    for (WordDAO word : fortuneCookie.getWords()) {
+                        String placeholder = "#" + word.getWordType();
+                        sentence = sentence.replaceFirst(Pattern.quote(placeholder), word.getText());
+                        personal = word.getPersonal();
+                    }
+
+                    Set<String> usernames = fortuneCookie.getLikes().stream()
+                            .map(UserDAO::getUsername)
+                            .collect(Collectors.toSet());
+
+                    return new ModifiedFortuneCookieDTO(
+                            fortuneCookie.getId(),
+                            fortuneCookie.getUserDAO().getUsername(),
+                            sentence,
+                            fortuneCookie.getDate(),
+                            personal,
+                            usernames
+                    );
+                })
                 .collect(Collectors.toList());
+
+        long totalElements = fortuneCookieDAOs.getTotalElements();
+        return new PageImpl<>(modifiedFortuneCookies, cookiePage, totalElements);
     }
 
-    public void deleteFortuneCookie(Long fortuneCookieId, String email) {
+    public void deleteFortuneCookie(Long fortuneCookieId, String username) {
         FortuneCookieDAO fortuneCookieDAO = fortuneCookieRepository.findById(fortuneCookieId)
                 .orElseThrow(() -> new NoSuchElementException("Fortune cookie not found"));
 
-        Optional<UserDAO> user = Optional.ofNullable(userRepository.findByEmail(email));
+        Optional<UserDAO> user = Optional.ofNullable(userRepository.findByUsername(username));
         UserDAO userDAO = user.orElseThrow();
 
         if (!userDAO.getRole().equals(Role.USER) && !fortuneCookieDAO.getUserDAO().getId().equals(userDAO.getId())) {
@@ -205,10 +266,10 @@ public class FortuneCookieServiceImpl implements FortuneCookieService {
     }
 
     @Override
-    public void likeFortuneCookie(Long fortuneCookieId, String email) {
+    public void likeFortuneCookie(Long fortuneCookieId, String username) {
         FortuneCookieDAO fortuneCookieDAO = fortuneCookieRepository.findById(fortuneCookieId).orElse(null);
         Set<UserDAO> liked = fortuneCookieDAO.getLikes();
-        UserDAO userDAO = userRepository.findByEmail(email);
+        UserDAO userDAO = userRepository.findByUsername(username);
         if(!liked.contains(userDAO)){
             liked.add(userDAO);
             fortuneCookieDAO.setLikes(liked);
@@ -217,10 +278,10 @@ public class FortuneCookieServiceImpl implements FortuneCookieService {
     }
 
     @Override
-    public void removeLikeFortuneCookie(Long fortuneCookieId, String email) {
+    public void removeLikeFortuneCookie(Long fortuneCookieId, String username) {
         FortuneCookieDAO fortuneCookieDAO = fortuneCookieRepository.findById(fortuneCookieId).orElse(null);
         Set<UserDAO> liked = fortuneCookieDAO.getLikes();
-        UserDAO userDAO = userRepository.findByEmail(email);
+        UserDAO userDAO = userRepository.findByUsername(username);
         if(liked.contains(userDAO)){
             liked.remove(userDAO);
             fortuneCookieDAO.setLikes(liked);

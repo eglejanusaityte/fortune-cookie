@@ -18,7 +18,7 @@ public class Word {
 
     @Schema(description = "The word string itself", example = "Word")
     @NonNull
-    private String word;
+    private String text;
 
     @Schema(description = "Enumeration of word types", example = "NOUN")
     @NonNull

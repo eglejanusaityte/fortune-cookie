@@ -8,17 +8,20 @@ import com.fortune.cookie.business.repository.model.FortuneDAO;
 import com.fortune.cookie.business.repository.model.NeededWordDAO;
 import com.fortune.cookie.business.service.FortuneService;
 import com.fortune.cookie.model.Fortune;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -35,9 +38,9 @@ public class FortuneServiceImpl implements FortuneService {
     private FortuneMapper fortuneMapper;
 
     @Override
-    public List<Fortune> getAllFortunes() {
-        List<FortuneDAO> fortuneDAOList = fortuneRepository.findAll();
-        return fortuneDAOList.stream().map(fortuneMapper::fortuneDAOToFortune).collect(Collectors.toList());
+    public Page<Fortune> getAllFortunes(Integer page) {
+        Pageable fortunePage = PageRequest.of(page, 10);
+        return fortuneRepository.findAll(fortunePage).map(fortuneMapper::fortuneDAOToFortune);
     }
 
     @Override
@@ -70,30 +73,25 @@ public class FortuneServiceImpl implements FortuneService {
     }
 
     @Override
-    public Fortune createFortune(String sentence, Set<String> descriptors) {
+    public Fortune createFortune(String sentence, List<Map<String, String>> neededWords){
         FortuneDAO fortuneDAO = new FortuneDAO(sentence);
-
         Set<NeededWordDAO> neededWordsDAO = new HashSet<>();
 
-        Pattern pattern = Pattern.compile("#(\\w+)");
-        Matcher matcher = pattern.matcher(sentence);
+        int placeholderCount = StringUtils.countMatches(sentence, "#");
+        if (neededWords.size() != placeholderCount) {
+            throw new IllegalArgumentException("Number of provided needed words does not match the placeholders in the sentence.");
+        }
 
-        while (matcher.find()) {
-            String placeholder = matcher.group(1);
+        for (Map<String, String> word : neededWords) {
+            String descriptor = word.get("descriptor");
 
             NeededWordDAO neededWordDAO = new NeededWordDAO();
-            neededWordDAO.setWordType(getWordTypeFromPlaceholder(placeholder));
-
-            String descriptor = descriptors.isEmpty() ? "default" : descriptors.iterator().next();
             neededWordDAO.setDescriptor(descriptor);
-            descriptors.remove(descriptor);
+            String wordType = word.get("wordType");
+            neededWordDAO.setWordType(WordType.valueOf(wordType));
 
             neededWordRepository.save(neededWordDAO);
             neededWordsDAO.add(neededWordDAO);
-        }
-
-        if (!descriptors.isEmpty()) {
-            throw new IllegalArgumentException("Too many descriptors provided.");
         }
 
         fortuneDAO.setNeededWordDAOS(neededWordsDAO);
@@ -103,7 +101,7 @@ public class FortuneServiceImpl implements FortuneService {
     }
 
     @Override
-    public Fortune updateFortune(Long fortuneId, String sentence, Set<String> descriptors) {
+    public Fortune updateFortune(Long fortuneId, String sentence, List<Map<String, String>> neededWords) {
         FortuneDAO fortuneDAO = fortuneRepository.findById(fortuneId)
                 .orElseThrow(() -> new IllegalArgumentException("Fortune not found with ID: " + fortuneId));
         if(sentence != null){
@@ -118,25 +116,18 @@ public class FortuneServiceImpl implements FortuneService {
         fortuneDAO.getNeededWordDAOS().clear();
 
         Set<NeededWordDAO> updatedNeededWordsDAO = new HashSet<>();
-
-        Pattern pattern = Pattern.compile("#(\\w+)");
-        Matcher matcher = pattern.matcher(sentence);
-
-        while (matcher.find()) {
-            String placeholder = matcher.group(1);
-
+        int placeholderCount = StringUtils.countMatches(sentence, "#");
+        if (neededWords.size() != placeholderCount) {
+            throw new IllegalArgumentException("Number of provided needed words does not match the placeholders in the sentence.");
+        }
+        for (Map<String, String> word : neededWords) {
+            String descriptor = word.get("descriptor");
             NeededWordDAO neededWordDAO = new NeededWordDAO();
-            neededWordDAO.setWordType(getWordTypeFromPlaceholder(placeholder));
-
-            String descriptor = descriptors.isEmpty() ? "default" : descriptors.iterator().next();
             neededWordDAO.setDescriptor(descriptor);
-            descriptors.remove(descriptor);
-
+            String wordType = word.get("wordType");
+            neededWordDAO.setWordType(WordType.valueOf(wordType));
             neededWordRepository.save(neededWordDAO);
             updatedNeededWordsDAO.add(neededWordDAO);
-        }
-        if (!descriptors.isEmpty()) {
-            throw new IllegalArgumentException("Too many descriptors provided.");
         }
         fortuneDAO.setNeededWordDAOS(updatedNeededWordsDAO);
         fortuneDAO = fortuneRepository.save(fortuneDAO);
