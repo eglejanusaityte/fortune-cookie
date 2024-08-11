@@ -12,7 +12,7 @@ import java.util.Set;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class ModifiedFortuneCookieDTO {
+public class FortuneCookieDTO {
     private Long id;
     private String username;
     private String fortuneCookieSentence;

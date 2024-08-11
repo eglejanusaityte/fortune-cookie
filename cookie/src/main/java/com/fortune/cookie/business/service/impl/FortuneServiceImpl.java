@@ -22,7 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -134,13 +133,4 @@ public class FortuneServiceImpl implements FortuneService {
         return fortuneMapper.fortuneDAOToFortune(fortuneDAO);
     }
 
-    private WordType getWordTypeFromPlaceholder(String placeholder) {
-        return switch (placeholder.toUpperCase()) {
-            case "NOUN" -> WordType.NOUN;
-            case "NOUN_PLURAL" -> WordType.NOUN_PLURAL;
-            case "VERB" -> WordType.VERB;
-            case "ADJECTIVE" -> WordType.ADJECTIVE;
-            default -> throw new IllegalArgumentException("Invalid word type: " + placeholder);
-        };
-    }
 }
